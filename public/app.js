@@ -51,7 +51,7 @@ function updateNextStep(){
   if(!campaign)return;
   const unresolved=campaign.mode==='live'&&(!campaign.brandEntity||campaign.candidates.some(c=>!c.excluded&&!c.entity));
   let text,action,label;
-  if(campaign.mode==='demo'){text='Explore the example, or start with your own brand and shortlist. Example prices and cultural values are invented.';action='new';label='Start your comparison';}
+  if(campaign.mode==='demo'){text='Explore the example, or bring your own brand and shortlist.';action='new';label='Start your comparison';}
   else if(!campaign.title||!campaign.brand||!campaign.market||campaign.budget===null||!campaign.candidates.length){text='Set your brand, budget and target market, then add the artists or podcasts you want to compare.';action='edit';label='Complete the brief';}
   else if(unresolved){text='Confirm the brand and candidate identities before requesting cultural evidence. Unselected names stay unresolved.';action='identities';label='Review identities';}
   else if(dirty||!report){text='Your brief is ready to compare. Missing commercial terms will stay unknown.';action='compare';label='Compare candidates';}
@@ -119,13 +119,13 @@ function renderReport() {
 async function runComparison() {
   if(running)return;
   if(!$('campaign-form').checkValidity()){openEditor();$('campaign-form').reportValidity();return;}
-  running=true; $('run-status').hidden=false;$('run-status').textContent=campaign.mode==='live'?'Requesting Qloo evidence. Missing commercial terms remain unknown…':'Checking supplied terms…'; showError(''); $('export-button').disabled=true; setBusy($('run-button'),true,'Comparing candidates…');$('rerun-button').disabled=true;$('next-action').disabled=true;
+  running=true; $('run-status').hidden=false;$('run-status').classList.remove('sr-only');$('run-status').textContent=campaign.mode==='live'?'Requesting Qloo evidence. Missing commercial terms remain unknown…':'Checking supplied terms…'; showError(''); $('export-button').disabled=true; setBusy($('run-button'),true,'Comparing candidates…');$('rerun-button').disabled=true;$('next-action').disabled=true;
   const snapshot=structuredClone(campaign);
   // Lock edits during a request so returned decisions cannot silently refer to newer inputs.
   $('campaign-form').inert=true;
   try {
     report=await api('/api/analyze',{method:'POST',body:JSON.stringify(snapshot)});
-    dirty=false; $('run-status').textContent=`Comparison updated: ${report.rows.length} candidates.`; $('stale').hidden=true; updateHeading(); renderReport();
+    dirty=false; $('run-status').textContent=`Comparison updated: ${report.rows.length} candidates.`;$('run-status').classList.add('sr-only'); $('stale').hidden=true; updateHeading(); renderReport();
     if(!report.warnings.length) $('editor').hidden=true;
   } catch(error){showError(error.message);markDirty();$('run-status').textContent='Comparison not updated. Your brief is preserved. Use Update comparison to retry.';}
   finally{running=false;for(const b of document.querySelectorAll('[data-terms]'))b.disabled=dirty;$('campaign-form').inert=false;setBusy($('run-button'),false,'Compare candidates ↗');$('export-button').disabled=dirty||!report;$('rerun-button').disabled=false;$('next-action').disabled=false;}

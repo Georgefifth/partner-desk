@@ -48,3 +48,5 @@ Brief → next action → editor (if needed) → comparison → exported handoff
 ```
 
 Review: a proposed numbered onboarding checklist repeated the existing editor and would crowd mobile. Replace it with one contextual sentence and action. Native fetch, AbortController, dialog and existing CSS suffice; no new library or onboarding service is needed. Preserve source labels and all commercial decision rules.
+
+Screenshot critique: removed repeated demonstration disclaimers from the next-action copy because the evidence banner already states them. Kept in-progress and failed status visible, while successful completion remains announced without reserving an extra row above results. Reduced spacing between brief and next action to preserve table visibility.
