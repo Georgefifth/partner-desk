@@ -133,8 +133,13 @@ async function connectLive() {
     showInfo('Connect live Qloo evidence','<p>The current desk runs with an illustrative example. A real Qloo API key must be configured on the server.</p><pre>QLOO_API_KEY=your_key npm start</pre><p>Use the hackathon key with <code>https://hackathon.api.qloo.com</code>. Keep the key out of browser code and shared briefs.</p><p>Restart the server, reload this page, choose Live Qloo in the campaign editor, then confirm each entity. Live failures never become demo results.</p>');return;
   }
   if(config.tokenRequired&&!token){
-    showInfo('Unlock live evidence','<p>Enter this desk’s shared access token, not the Qloo API key. It stays in this tab’s memory.</p><form id="token-form"><div class="search-field"><input type="password" id="token-input" autocomplete="off" aria-label="Desk access token" required><button class="button primary">Unlock</button></div></form>');
-    $('token-form').addEventListener('submit',e=>{e.preventDefault();token=$('token-input').value;closeDialog('info-dialog');activateLive();});return;
+    showInfo('Unlock live evidence','<p>Enter this desk’s shared access token, not the Qloo API key. It stays in this tab’s memory.</p><form id="token-form"><div class="search-field"><input type="password" id="token-input" autocomplete="off" aria-label="Desk access token" required><button class="button primary" id="token-submit">Unlock</button></div><p id="token-error" role="alert"></p></form>');
+    $('token-form').addEventListener('submit',async e=>{
+      e.preventDefault();token=$('token-input').value;setBusy($('token-submit'),true,'Checking…');$('token-error').textContent='';
+      try{await api('/api/access');closeDialog('info-dialog');activateLive();}
+      catch(error){token='';$('token-error').textContent=error.message;}
+      finally{setBusy($('token-submit'),false,'Unlock');}
+    });return;
   }
   activateLive();
 }
@@ -158,7 +163,7 @@ $('campaign-form').addEventListener('input',e=>{
   } else if(input.name){campaign[input.name]=input.name==='budget'?(input.value===''?null:Number(input.value)):input.value;if(input.name==='brand')delete campaign.brandEntity;}
   if(input.id!=='mode-select') {markDirty();updateHeading();}
 });
-$('mode-select').addEventListener('change',()=>{chooseMode($('mode-select').value);markDirty();populateForm();if(campaign.mode==='live'&&config.tokenRequired&&!token)connectLive();});
+$('mode-select').addEventListener('change',()=>{if($('mode-select').value==='live'&&config.tokenRequired&&!token){$('mode-select').value=campaign.mode;connectLive();return;}chooseMode($('mode-select').value);markDirty();populateForm();if(campaign.mode==='live'&&config.tokenRequired&&!token)connectLive();});
 $('candidate-inputs').addEventListener('click',e=>{const remove=e.target.closest('[data-remove]');const resolve=e.target.closest('[data-resolve]');if(remove){campaign.candidates=campaign.candidates.filter(c=>c.id!==remove.dataset.remove);pins.delete(remove.dataset.remove);markDirty();renderCandidateInputs();updateHeading();}if(resolve)openSearch(resolve.dataset.resolve);});
 $('add-candidate').addEventListener('click',()=>{if(campaign.candidates.length>=12)return;campaign.candidates.push({id:crypto.randomUUID(),name:'',type:'artist',fee:null,quoteBasis:'unknown',quoteUnits:null,quoteChannel:'unknown',markets:[],format:'',notes:'',source:'',excluded:false});markDirty();renderCandidateInputs();updateHeading();$('candidate-inputs').lastElementChild.querySelector('input').focus();});
 $('resolve-brand').addEventListener('click',()=>openSearch('brand'));

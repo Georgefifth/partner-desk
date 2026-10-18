@@ -105,3 +105,7 @@ In commercial mode, **Terms fit** means the supplied budget, placement, delivery
 Quote editing shows quantities only for episode/week rates and previews the calculated package cost before saving. CPM stays non-comparable. You can open the same editor from a candidate's details. Empty filtered views include a direct Show all candidates action.
 
 The web Export brief action now formats the displayed report snapshot on your device, preserving its timestamp and cultural evidence without an additional query. Pins select export candidates; list filters do not. The commercial-only view toggle does not remove evidence from a live/demo export. The HTTP export endpoint remains available for API consumers and still recomputes the supplied campaign.
+
+## Render server edition
+
+[Deploy the reviewed Free service](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FGeorgefifth%2Fpartner-desk%2Ftree%2Fcodex%2Fproduct-review) using the root `render.yaml`. See [DEPLOYMENT.md](DEPLOYMENT.md) for private secret setup, cold starts, process-local quota limitations and public acceptance checks. Render's generated desk access token is different from your Qloo API key. The Pages edition remains available without either credential.

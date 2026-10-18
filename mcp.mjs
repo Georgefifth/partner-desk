@@ -10,7 +10,7 @@ const tools = [
 async function handle(message) {
   if (message.id === undefined) return;
   const reply = result => process.stdout.write(`${JSON.stringify({jsonrpc:'2.0',id:message.id,result})}\n`);
-  if (message.method === 'initialize') return reply({ protocolVersion:'2024-11-05', capabilities:{tools:{}},serverInfo:{name:'partner-desk',version:'0.4.0'} });
+  if (message.method === 'initialize') return reply({ protocolVersion:'2024-11-05', capabilities:{tools:{}},serverInfo:{name:'partner-desk',version:'0.4.1'} });
   if (message.method === 'ping') return reply({});
   if (message.method === 'tools/list') return reply({tools});
   if (message.method === 'tools/call') {

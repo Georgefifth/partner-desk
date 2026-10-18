@@ -8,7 +8,7 @@ import { example } from './lib/example.mjs';
 import { publicCase } from './lib/public-case.mjs';
 
 const publicFiles = { '/lib/assessment.mjs':['../lib/assessment.mjs','text/javascript'], '/lib/report.mjs':['../lib/report.mjs','text/javascript'], '/': ['index.html','text/html'], '/app.js': ['app.js','text/javascript'], '/input-tools.js':['input-tools.js','text/javascript'], '/runtime-config.js':['runtime-config.js','text/javascript'], '/styles.css': ['styles.css','text/css'], '/icon.svg': ['icon.svg','image/svg+xml'] };
-export function createServer({ apiKey = '', baseUrl, accessToken = '', qloo = apiKey ? new QlooClient({ apiKey, baseUrl }) : null } = {}) {
+export function createServer({ apiKey = '', baseUrl, accessToken = '', dailyLimit = 1000, qloo = apiKey ? new QlooClient({ apiKey, baseUrl, dailyLimit }) : null } = {}) {
   const limits = new Map();
   const server = http.createServer(async (req,res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
@@ -17,6 +17,8 @@ export function createServer({ apiKey = '', baseUrl, accessToken = '', qloo = ap
     const json = (status, data) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); };
     try {
       const url = new URL(req.url, 'http://localhost');
+      // Render probes the app without spending an upstream request or requiring a token.
+      if (req.method === 'GET' && url.pathname === '/healthz') return json(200, {status:'ok',version:'0.4.1'});
       if (req.method === 'GET' && publicFiles[url.pathname]) {
         const [file,type] = publicFiles[url.pathname];
         res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8` });
@@ -32,7 +34,7 @@ export function createServer({ apiKey = '', baseUrl, accessToken = '', qloo = ap
       if (!window || Date.now() > window.until) limits.set(ip, { count: 1, until: Date.now() + 60000 });
       else if (++window.count > 60) throw new AppError('Too many requests. Try again in a minute.', 429);
       if (limits.size > 1000) for (const [key,value] of limits) if (Date.now() > value.until) limits.delete(key);
-      if (req.method === 'GET' && url.pathname === '/api/config') return json(200, { liveAvailable: Boolean(qloo), tokenRequired: Boolean(accessToken), version: '0.4.0' });
+      if (req.method === 'GET' && url.pathname === '/api/config') return json(200, { liveAvailable: Boolean(qloo), tokenRequired: Boolean(accessToken), version: '0.4.1' });
       if (req.method === 'GET' && url.pathname === '/api/example') return json(200, example);
       if (req.method === 'GET' && url.pathname === '/api/public-case') return json(200, publicCase);
       const authorize = () => {
@@ -42,6 +44,7 @@ export function createServer({ apiKey = '', baseUrl, accessToken = '', qloo = ap
           if (given.length !== expected.length || !timingSafeEqual(given,expected)) throw new AppError('Enter the access token for this desk to use live evidence.',401);
         }
       };
+      if (req.method === 'GET' && url.pathname === '/api/access') { authorize(); return json(200, {authorized:true}); }
       if (req.method === 'GET' && url.pathname === '/api/search') { authorize(); return json(200, { entities: await qloo.search(url.searchParams.get('query'),url.searchParams.get('type')) }); }
       if (req.method !== 'POST' || !['/api/analyze','/api/export'].includes(url.pathname)) return json(404, { error: 'Endpoint not found.' });
       if (!req.headers['content-type']?.includes('application/json')) throw new AppError('Send JSON data.',415);
@@ -70,6 +73,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (!['127.0.0.1','localhost','::1'].includes(host) && process.env.QLOO_API_KEY && !process.env.ACCESS_TOKEN) {
     console.error('Set ACCESS_TOKEN before exposing live evidence on a public interface.'); process.exit(1);
   }
-  const server = createServer({ apiKey: process.env.QLOO_API_KEY, baseUrl: process.env.QLOO_BASE_URL, accessToken: process.env.ACCESS_TOKEN });
+  const server = createServer({ apiKey: process.env.QLOO_API_KEY, baseUrl: process.env.QLOO_BASE_URL, accessToken: process.env.ACCESS_TOKEN, dailyLimit: process.env.QLOO_DAILY_LIMIT === undefined ? 1000 : Number(process.env.QLOO_DAILY_LIMIT) });
   server.listen(Number(process.env.PORT || 4318),host,() => console.log(`Partner Desk is running at http://${host}:${process.env.PORT || 4318}`));
+  process.once('SIGTERM',()=>{
+    server.close(()=>process.exit(0));
+    setTimeout(()=>{server.closeAllConnections();process.exit(0);},10000).unref();
+  });
 }

@@ -76,3 +76,7 @@ Acceptance: commercial completion must be independent of cultural evidence; unkn
 - No new claims about user time savings or buying intent. No public live backend was added.
 
 Server edition browser loaded v0.4 and all six demo candidates with the new public modules. The real-key smoke check also passed again for the Patagonia brand, Khruangbin artist and Outside Podcast, with Qloo-origin evidence in both categories and no warnings. These remain narrow integration checks using synthetic commercial inputs.
+
+## Render deployment preparation — v0.4.1
+
+Added a Free-only render.yaml, non-Qloo /healthz liveness endpoint, explicit per-process QLOO_DAILY_LIMIT validation, graceful SIGTERM shutdown and a /api/access check so a wrong desk token does not switch modes or clear the example. All 47 tests pass, including repeated health probes spending no Qloo calls, rejected invalid budgets and token checks with no upstream calls. Render login and GitHub permissions are completed by the account owner. No local credential is copied to the hosting provider automatically. A successful CI run is not proof of a live Render service; the hosted URL must still be checked.

@@ -16,3 +16,8 @@ test('live search and Insights support the observed types-array response',async(
 test('429 retries once and cached evidence retains observation time',async()=>{let calls=0;const q=client(async()=>++calls===1?new Response('',{status:429}):Response.json({results:{entities:[]}}));const a=await q.request('/search',{query:'a'});const b=await q.request('/search',{query:'a'});assert.equal(calls,2);assert.equal(a.observedAt,b.observedAt);});
 test('401 and network errors do not leak upstream bodies',async()=>{const q=client(async()=>new Response('credential-secret',{status:401}));await assert.rejects(q.search('Exact','artist'),/rejected the API key/);const down=client(async()=>{throw new Error('sensitive detail');});await assert.rejects(down.search('Exact','artist'),/could not be reached/);});
 test('daily budget bounds outbound requests',async()=>{const q=new QlooClient({apiKey:'test',dailyLimit:0,wait:async()=>{},fetchImpl:async()=>{throw new Error('should not run');}});await assert.rejects(q.request('/search',{query:'a'}),/daily limit/);});
+
+test('invalid request budgets cannot disable the limit accidentally',()=>{
+ for(const dailyLimit of [NaN,Infinity,-1,1.5,'100',1001])assert.throws(()=>new QlooClient({apiKey:'test',dailyLimit}),/whole number/);
+ const disabled=new QlooClient({apiKey:'test',dailyLimit:0});assert.equal(disabled.dailyLimit,0);
+});

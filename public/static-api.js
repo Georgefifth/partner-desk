@@ -3,7 +3,7 @@ import {example} from './lib/example.mjs';
 import {publicCase} from './lib/public-case.mjs';
 
 export async function staticApi(path,options={}) {
-  if(path==='/api/config')return {liveAvailable:false,tokenRequired:false,staticHosting:true,version:'0.4.0'};
+  if(path==='/api/config')return {liveAvailable:false,tokenRequired:false,staticHosting:true,version:'0.4.1'};
   if(path==='/api/example')return structuredClone(example);
   if(path==='/api/public-case')return {...structuredClone(publicCase),mode:'commercial'};
   const body=options.body?JSON.parse(options.body):{};
