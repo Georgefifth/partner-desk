@@ -21,6 +21,9 @@ test('Pages bundle is allowlisted, supports project subpaths and shares decision
   assert.deepEqual(files,['.nojekyll','app.js','icon.svg','index.html','input-tools.js','lib','lib/domain.mjs','lib/example.mjs','lib/public-case.mjs','runtime-config.js','static-api.js','styles.css'].sort());
   const html=await readFile(new URL('index.html',output),'utf8');
   assert.doesNotMatch(html,/(?:src|href)="\/(?!\/)/);
+  assert.match(html,/app\.js\?v=[a-f0-9]{12}/);
+  const app=await readFile(new URL('app.js',output),'utf8');
+  assert.match(app,/static-api\.js\?v=[a-f0-9]{12}/);
   const {staticApi}=await import(new URL('static-api.js',output));
   assert.equal((await staticApi('/api/config')).liveAvailable,false);
   const input={...structuredClone(example),mode:'commercial'};
