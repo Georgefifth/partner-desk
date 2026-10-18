@@ -24,3 +24,17 @@ A preserves overview while moving one-partner corrections next to their evidence
 Principles: distinguish evidence origins; make unknown information actionable; preserve uncommitted input on cancel; recompute with shared domain rules; never convert demo evidence into live evidence. Static hosting must expose a meaningful local commercial-check workflow, with zero Qloo network calls and explicit labels. Capture desktop/mobile views after implementation and critique once more.
 
 Second-pass critique: the first row-action placement under the decision text increased row height and separated the correction from the quote. Moved Update terms into the price column. Mobile retains the same action beside the data being corrected; the dialog remains a single scrollable column. No animation or new dashboard was introduced.
+
+## Second refinement — commercial assessment and quote editing
+
+Before implementation: keep cloud #F3F6FB, paper #FFFFFF, ink #252B57, iris #475BE8, sea #1C7468 and amber #956017. Trebuchet MS headings and system body remain; prices use tabular figures. Preserve the left-aligned comparison rather than introduce another dashboard.
+
+```
+Chosen: terms fit / confirm terms / mismatch → edit supplied rate → computed package cost
+        cultural assessment remains separately visible and unresolved where absent
+Rejected: all commercial-only rows stay “Needs information” until unavailable Qloo data arrives
+```
+
+Use the existing table and focused editor. Conditional quantity and a nearby arithmetic preview reduce unnecessary interpretation; no new decorative panels. Commercial-only conclusions must never become cultural endorsements. Export the displayed report snapshot; preserve full evidence when the commercial-only toggle is just a view. Critique after desktop/mobile browser checks.
+
+Second-pass mobile critique: a preview after all fields was below the viewport while typing the rate. Moved the arithmetic above the fields; the save/cancel strip stays visible while the form scrolls. Confirmed commercial status in both table and detail, and kept cultural uncertainty explicit.

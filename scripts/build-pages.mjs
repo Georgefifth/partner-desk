@@ -7,7 +7,7 @@ await mkdir(new URL('lib/',output),{recursive:true});
 const sources=new Map();
 for(const file of ['index.html','app.js','input-tools.js','static-api.js','styles.css','icon.svg'])
   sources.set(file,await readFile(new URL(`public/${file}`,root),'utf8'));
-for(const file of ['domain.mjs','example.mjs','public-case.mjs'])
+for(const file of ['domain.mjs','example.mjs','public-case.mjs','assessment.mjs','report.mjs'])
   sources.set(`lib/${file}`,await readFile(new URL(`lib/${file}`,root),'utf8'));
 sources.set('runtime-config.js','export const staticHosting = true;\n');
 // Version the complete module graph, not just the entry script: Pages caches assets.

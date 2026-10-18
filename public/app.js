@@ -1,3 +1,5 @@
+import {commercialAssessment,commercialLabels,quoteCost,compareCommercialRows} from './lib/assessment.mjs';
+import {exportMarkdown} from './lib/report.mjs';
 import {staticHosting} from './runtime-config.js';
 import {basisLabels,channelLabels,parseCandidateLines} from './input-tools.js';
 const $ = id => document.getElementById(id);
@@ -8,7 +10,8 @@ const pins = new Set();
 let identityReview=null;
 const money = value => value === null ? 'Not supplied' : new Intl.NumberFormat('en-US',{style:'currency',currency:campaign.currency,minimumFractionDigits:0,maximumFractionDigits:2}).format(value);
 const initials = name => name.split(/\s+/).filter(Boolean).slice(0,2).map(x => x[0]).join('');
-const badge = decision => `<span class="decision-badge ${decision}">${decision === 'worth-a-conversation' ? '✓' : decision === 'needs-information' ? '?' : '−'} ${labels[decision]}</span>`;
+const commercialView=()=>baseline||report?.mode==='commercial';
+const badge = (decision,commercial=false) => `<span class="decision-badge ${decision}">${decision === 'worth-a-conversation' ? '✓' : decision === 'needs-information' ? '?' : '−'} ${(commercial?commercialLabels:labels)[decision]}</span>`;
 async function api(path,options = {}) {
   if(staticHosting){const {staticApi}=await import('./static-api.js');return staticApi(path,options);}
   const response = await fetch(path,{...options,headers:{ ...(options.body ? {'Content-Type':'application/json'} : {}), ...(token ? {Authorization:`Bearer ${token}`} : {}), ...options.headers }});
@@ -30,7 +33,7 @@ function updateHeading() {
   $('campaign-objective').textContent=campaign.objective;
   $('campaign-strip').innerHTML=[['Brand',campaign.brand],['Target market',campaign.market],['Partnership',campaign.format],['Per-partner budget',money(campaign.budget)],['Candidates',`${campaign.candidates.length} to compare`]].map(([name,value])=>`<div class="campaign-fact"><span>${esc(name)}</span><strong>${esc(value)}</strong></div>`).join('');
   $('mode-select').value=campaign.mode;
-  $('edition-label').textContent=config.staticHosting?'Browser edition / no live Qloo':'Server edition / v0.3';
+  $('edition-label').textContent=config.staticHosting?'Browser edition / no live Qloo':'Server edition / v0.4';
   $('mode-banner').classList.toggle('live',campaign.mode==='live');
   $('mode-banner').querySelector('p').innerHTML=campaign.mode==='demo' ? '<strong>Illustrative example</strong> — cultural values are invented; example quotes can be edited. No real partnership is implied.' : '<strong>Live Qloo mode</strong> — cultural evidence comes from Qloo. Commercial terms are your unverified input.';
   if(campaign.mode==='commercial')$('mode-banner').querySelector('p').innerHTML='<strong>Commercial review</strong> — your supplied terms only. No Qloo evidence is requested or inferred.';
@@ -40,6 +43,7 @@ function updateHeading() {
   $('live-button').textContent=config.staticHosting?'About live evidence':campaign.mode==='demo'?'Connect live evidence':'Live connection details';
   $('resolve-brand').disabled=campaign.mode!=='live' || !config.liveAvailable;
   $('review-identities').disabled=campaign.mode!=='live'||!config.liveAvailable;
+  $('review-identities').closest('.identity-toolbar').hidden=campaign.mode!=='live';
   $('brand-match').textContent=campaign.mode==='commercial'?'Name for your brief. No Qloo identity is required in commercial mode.':campaign.mode==='demo' ? 'Example brand. No live identity has been resolved.' : campaign.brandEntity ? `Confirmed: ${campaign.brandEntity.name}` : 'Search and confirm a brand before comparing.';
   $('live-status').textContent=campaign.mode==='live' ? config.liveAvailable ? 'Confirm each identity. Unresolved partners stay unknown.' : 'Live access needs a server-side QLOO_API_KEY.' : campaign.mode==='commercial' ? 'Commercial terms are checked without Qloo. Cultural fit remains unresolved.' : 'Synthetic cultural values are available for the original example candidates only.';
 }
@@ -56,7 +60,7 @@ function renderCandidateInputs() {
     <label class="market-input">Delivery markets<input data-field="markets" value="${esc(c.markets.join(', '))}" maxlength="200" placeholder="Unknown, or Global"></label>
     <label class="format-input">Offered format<select data-field="format"><option value="" ${!c.format?'selected':''}>Not confirmed</option>${['Sponsored content','Live event','Product collaboration'].map(f=>`<option ${f===c.format?'selected':''}>${f}</option>`).join('')}</select></label>
     <button class="icon-button remove-input" type="button" data-remove="${esc(c.id)}" aria-label="Remove ${esc(c.name || 'candidate')}">×</button></div>
-    <details class="quote-context"><summary>Quote details: ${esc(basisLabels[c.quoteBasis]||basisLabels.unknown)} / ${esc(channelLabels[c.quoteChannel]||channelLabels.unknown)}</summary><div class="quote-fields"><label>Rate basis<select data-field="quoteBasis">${Object.entries(basisLabels).map(([value,label])=>`<option value="${value}" ${(c.quoteBasis??'unknown')===value?'selected':''}>${label}</option>`).join('')}</select></label><label>Episodes or weeks<input data-field="quoteUnits" type="number" min="1" max="10000" step="1" value="${c.quoteUnits??''}" placeholder="If billed per unit"></label><label>What the offer covers<select data-field="quoteChannel">${Object.entries(channelLabels).map(([value,label])=>`<option value="${value}" ${(c.quoteChannel??'unknown')===value?'selected':''}>${label}</option>`).join('')}</select></label></div><p>CPM rates need a delivery estimate or package quote. A website rate cannot stand in for a podcast rate.</p></details>
+    <details class="quote-context"><summary>Quote details: ${esc(basisLabels[c.quoteBasis]||basisLabels.unknown)} / ${esc(channelLabels[c.quoteChannel]||channelLabels.unknown)}</summary><div class="quote-fields"><label>Rate basis<select data-field="quoteBasis">${Object.entries(basisLabels).map(([value,label])=>`<option value="${value}" ${(c.quoteBasis??'unknown')===value?'selected':''}>${label}</option>`).join('')}</select></label><label data-quantity-field ${['episode','week'].includes(c.quoteBasis)?'':'hidden'}>${c.quoteBasis==='week'?'Number of weeks':'Number of episodes'}<input ${['episode','week'].includes(c.quoteBasis)?'':'disabled'} data-field="quoteUnits" type="number" min="1" max="10000" step="1" value="${c.quoteUnits??''}" placeholder="If billed per unit"></label><label>What the offer covers<select data-field="quoteChannel">${Object.entries(channelLabels).map(([value,label])=>`<option value="${value}" ${(c.quoteChannel??'unknown')===value?'selected':''}>${label}</option>`).join('')}</select></label></div><p>CPM rates need a delivery estimate or package quote. A website rate cannot stand in for a podcast rate.</p></details>
     <div class="candidate-notes"><label>Team notes<input data-field="notes" value="${esc(c.notes)}" maxlength="1000" placeholder="What needs checking?"></label><label>Source link (optional)<input data-field="source" type="url" value="${esc(c.source)}" placeholder="https://…"></label><label class="exclude-label"><input data-field="excluded" type="checkbox" ${c.excluded?'checked':''}> Exclude from campaign</label></div>
     ${campaign.mode==='live'?`<div class="candidate-identity"><button class="small-button" type="button" data-resolve="${esc(c.id)}" ${config.liveAvailable?'':'disabled'}>Find in Qloo</button><span>${esc(c.entity ? `Confirmed: ${c.entity.name}` : 'Identity not confirmed. Cultural evidence will remain unknown.')}</span></div>`:''}
     </section>`).join('');
@@ -66,21 +70,28 @@ function openEditor() { $('editor').hidden=false; populateForm(); $('editor').sc
 function renderReport() {
   if(!report) return;
   const reportMoney = value => value === null ? 'Not supplied' : new Intl.NumberFormat('en-US',{style:'currency',currency:report.campaign.currency,minimumFractionDigits:0,maximumFractionDigits:2}).format(value);
-  const displayRows=baseline?report.rows.map(c=>({...c,decision:c.checks.some(x=>x.state==='fail')?'does-not-fit':c.checks.some(x=>x.state==='unknown')?'needs-information':'worth-a-conversation'})):report.rows;
+  const commercial=commercialView();
+  $('comparison-heading').textContent=report.mode==='commercial'?'Commercial review':'Your decision desk';
+  $('comparison').querySelector('.comparison-header p').textContent=report.mode==='commercial'?'Check the supplied quote and delivery terms. Assess cultural suitability separately.':'Commercial fit comes first. Cultural signals guide the next conversation.';
+  const displayRows=commercial?report.rows.map(c=>({...c,...commercialAssessment(c)})):report.rows;
+  const filterLabels=commercial?commercialLabels:labels;
+  for(const b of document.querySelectorAll('[data-filter]'))if(b.dataset.filter!=='all')b.firstChild.textContent=filterLabels[b.dataset.filter]+' ';
+  $('commercial-only').closest('label').hidden=report.mode==='commercial';
   const counts=Object.fromEntries(Object.keys(labels).map(s=>[s,displayRows.filter(r=>r.decision===s).length]));
   $('count-all').textContent=report.rows.length; $('count-worth').textContent=counts['worth-a-conversation']; $('count-needs').textContent=counts['needs-information']; $('count-no').textContent=counts['does-not-fit'];
   let rows=displayRows.filter(r=>(filter==='all'||r.decision===filter)&&(!pinnedOnly||pins.has(r.id)));
-  if(baseline){const order={'worth-a-conversation':0,'needs-information':1,'does-not-fit':2};rows.sort((a,b)=>order[a.decision]-order[b.decision]||a.type.localeCompare(b.type)||a.name.localeCompare(b.name));}
+  if(commercial)rows.sort(compareCommercialRows);
   $('candidate-rows').innerHTML=rows.length ? rows.map((c,i)=>`<tr><td><div class="partner-cell"><div class="partner-avatar avatar-${i%5}" aria-hidden="true">${esc(initials(c.name))}</div><div><button class="partner-name" data-detail="${esc(c.id)}">${esc(c.name)}</button><span class="partner-type">${c.type==='artist'?'Music / artist':'Podcast'}${pins.has(c.id)?' / pinned':''}</span></div></div></td>
-    <td><div class="signal">${baseline?'<span class="signal-number">Hidden</span><span class="signal-label">Commercial view</span>':c.evidence?`<span class="signal-number">${c.evidence.affinity.toFixed(2)}</span><progress class="signal-track" max="200" value="${Math.round((c.evidence.affinity+1)*100)}" aria-label="Cultural affinity ${c.evidence.affinity.toFixed(2)}"></progress><span class="signal-label">${c.evidence.origin==='synthetic-demo'?'Illustrative value':'Qloo affinity'}</span>`:'<span class="signal-number">—</span><span class="signal-label">No evidence yet</span>'}</div></td>
+    <td><div class="signal">${report.mode==='commercial'?'<span class="signal-number">—</span><span class="signal-label">Not assessed</span>':baseline?'<span class="signal-number">Hidden</span><span class="signal-label">Commercial view</span>':c.evidence?`<span class="signal-number">${c.evidence.affinity.toFixed(2)}</span><progress class="signal-track" max="200" value="${Math.round((c.evidence.affinity+1)*100)}" aria-label="Cultural affinity ${c.evidence.affinity.toFixed(2)}"></progress><span class="signal-label">${c.evidence.origin==='synthetic-demo'?'Illustrative value':'Qloo affinity'}</span>`:'<span class="signal-number">—</span><span class="signal-label">No evidence yet</span>'}</div></td>
     <td><span class="fee">${c.quoteCost?.amount===null?(c.fee===null?'Quote missing':'Confirm rate basis'):esc(reportMoney(c.quoteCost?.amount??c.fee))}</span><span class="fee-note">${c.fee===null?'Request a quote':`${esc(reportMoney(c.fee))} / ${esc(basisLabels[c.quoteBasis]||'Unconfirmed basis')}`}</span><button class="row-action" data-terms="${esc(c.id)}" ${dirty||running?'disabled':''}>Update terms</button></td>
     <td><div class="check-list">${c.checks.map(x=>`<span class="check-pill ${x.state}" title="${esc(x.detail)}">${x.state==='pass'?'✓':x.state==='fail'?'×':'?'} ${esc(x.label)}</span>`).join('')}</div></td>
-    <td>${badge(c.decision)}<span class="decision-detail">${baseline?'Based on supplied commercial terms only.':esc(c.reason)}</span></td>
-    <td><button class="pin-button ${pins.has(c.id)?'pinned':''}" data-pin="${esc(c.id)}" aria-pressed="${pins.has(c.id)}" aria-label="${pins.has(c.id)?'Unpin':'Pin'} ${esc(c.name)}">${pins.has(c.id)?'★':'☆'}</button></td></tr>`).join('') : '<tr><td class="empty-state" colspan="6">No partners in this view. Choose another filter or pin a partner.</td></tr>';
+    <td>${badge(c.decision,commercial)}<span class="decision-detail">${esc(c.reason)}</span></td>
+    <td><button class="pin-button ${pins.has(c.id)?'pinned':''}" data-pin="${esc(c.id)}" aria-pressed="${pins.has(c.id)}" aria-label="${pins.has(c.id)?'Unpin':'Pin'} ${esc(c.name)}">${pins.has(c.id)?'★':'☆'}</button></td></tr>`).join('') : '<tr><td class="empty-state" colspan="6">No partners in this view. <button class="text-button" data-show-all>Show all candidates</button></td></tr>';
   $('result-summary').textContent=`${rows.length} of ${report.rows.length} candidates${pinnedOnly?' / pinned only':''}. Artists and podcasts are evaluated separately.`;
   $('pin-count').textContent=pins.size; $('shortlist-button').firstChild.textContent=pinnedOnly?'Show all partners ':'View pinned partners ';
-  $('baseline-note').hidden=!baseline;
-  $('signal-notes').textContent=(report.signalNotes??[]).join(' ');$('signal-notes').hidden=baseline||!report.signalNotes?.length;
+  $('baseline-note').hidden=!commercial;
+  $('baseline-note').textContent=report.mode==='commercial'?'Terms fit means your supplied commercial conditions pass. Cultural fit, audience suitability and availability have not been established.':'This view shows commercial checks only. Exports retain the full assessment and cultural evidence.';
+  $('signal-notes').textContent=(report.signalNotes??[]).join(' ');$('signal-notes').hidden=commercial||!report.signalNotes?.length;
   $('export-button').disabled=dirty||running;
   if(report.warnings.length) showError(report.warnings.join(' '));
   for(const b of document.querySelectorAll('[data-filter]'))b.setAttribute('aria-pressed',String(b.dataset.filter===filter&&!pinnedOnly));
@@ -101,12 +112,14 @@ async function runComparison() {
 }
 function showDetail(id) {
   const c=report.rows.find(r=>r.id===id); if(!c)return;
+  const assessment=commercialView()?commercialAssessment(c):c;
   const origin=c.evidence?.origin==='synthetic-demo'?'Synthetic demonstration':c.evidence?'Live Qloo evidence':'No cultural evidence';
-  $('detail-content').innerHTML=`<div class="detail-hero"><div class="partner-avatar">${esc(initials(c.name))}</div><div><p class="section-label">${c.type==='artist'?'Music / artist':'Podcast'}</p><h2 id="detail-title">${esc(c.name)}</h2></div></div>${badge(c.decision)}<p class="field-hint">${esc(c.reason)}</p>${dirty?'<div class="notice stale">These results belong to the previous brief. Rerun the comparison.</div>':''}
+  $('detail-content').innerHTML=`<div class="detail-hero"><div class="partner-avatar">${esc(initials(c.name))}</div><div><p class="section-label">${c.type==='artist'?'Music / artist':'Podcast'}</p><h2 id="detail-title">${esc(c.name)}</h2></div></div>${badge(assessment.decision,commercialView())}<p class="field-hint">${esc(assessment.reason)}</p><button class="button secondary" id="detail-update-terms" ${dirty?'disabled':''}>Update terms</button>${dirty?'<div class="notice stale">These results belong to the previous brief. Rerun the comparison.</div>':''}
     <section class="detail-section"><h3>Commercial checks</h3><span class="source-label">${report.mode==='demo'?'Example / user-edited terms':'Your input / unverified'}</span><p>Quoted rate: <strong>${esc(c.fee===null?'Not supplied':new Intl.NumberFormat('en-US',{style:'currency',currency:report.campaign.currency}).format(c.fee))}</strong> / ${esc(basisLabels[c.quoteBasis])}</p><p>Package cost: ${esc(c.quoteCost?.amount===null?'Not comparable':new Intl.NumberFormat('en-US',{style:'currency',currency:report.campaign.currency}).format(c.quoteCost?.amount??c.fee))}<br>${esc(c.quoteCost?.detail??'')}</p>${c.checks.map(x=>`<div class="check-row"><span class="check-pill ${x.state}">${esc(x.label)}</span><span>${esc(x.detail)}</span></div>`).join('')}${c.source?`<p><a href="${esc(c.source)}" target="_blank" rel="noopener noreferrer">Open supplied source</a> — availability and applicability still need confirmation.</p>`:''}${c.notes?`<p>Team note: ${esc(c.notes)}</p>`:''}</section>
     <section class="detail-section"><h3>Cultural evidence</h3><span class="source-label">${origin}</span><p>${c.evidence?`Affinity ${c.evidence.affinity.toFixed(2)} for this campaign's brand signal. Compare only with other ${c.type==='artist'?'artists':'podcasts'} in this run.`:'No supported cultural signal is available. This does not mean the partner is a poor match.'}</p>${c.entity?`<p>Confirmed identity: ${esc(c.entity.name)}<br><small>${esc(c.entity.entity_id)}</small></p>`:''}${c.evidence?`<details><summary>Inspect the evidence</summary><pre>${esc(JSON.stringify(c.evidence,null,2))}</pre></details>`:''}<p>Affinity is not audience share, guaranteed reach, willingness to collaborate or predicted sales.</p></section>
     <section class="detail-section"><h3>Before the next conversation</h3><ul>${c.questions.map(q=>`<li>${esc(q)}</li>`).join('')}</ul></section>`;
   $('detail-dialog').showModal();
+  $('detail-update-terms').addEventListener('click',()=>{closeDialog('detail-dialog');openTerms(id);});
 }
 function openSearch(id) {
   if(campaign.mode!=='live'||!config.liveAvailable)return;
@@ -139,6 +152,7 @@ $('campaign-form').addEventListener('input',e=>{
   const input=e.target; const section=input.closest('.candidate-input');
   if(section&&input.dataset.field){const c=campaign.candidates.find(c=>c.id===section.dataset.id);const field=input.dataset.field;
     c[field]=['fee','quoteUnits'].includes(field)?(input.value===''?null:Number(input.value)):field==='markets'?input.value.split(',').map(x=>x.trim()).filter(Boolean):field==='excluded'?input.checked:input.value;
+    if(field==='quoteBasis'){const quantity=section.querySelector('[data-quantity-field]');const perUnit=['episode','week'].includes(c.quoteBasis);quantity.hidden=!perUnit;quantity.querySelector('input').disabled=!perUnit;quantity.firstChild.textContent=c.quoteBasis==='week'?'Number of weeks':'Number of episodes';if(!perUnit){c.quoteUnits=null;quantity.querySelector('input').value='';}}
     if(['quoteBasis','quoteChannel'].includes(field))section.querySelector('.quote-context summary').textContent=`Quote details: ${basisLabels[c.quoteBasis]||basisLabels.unknown} / ${channelLabels[c.quoteChannel]||channelLabels.unknown}`;
     if(['name','type'].includes(field)){delete c.entity;const identity=section.querySelector('.candidate-identity span');if(identity)identity.textContent='Identity changed. Search and confirm again.';}
   } else if(input.name){campaign[input.name]=input.name==='budget'?(input.value===''?null:Number(input.value)):input.value;if(input.name==='brand')delete campaign.brandEntity;}
@@ -199,7 +213,7 @@ $('search-form').addEventListener('submit',async e=>{
   }catch(error){$('search-results').textContent=error.message;}
   finally{setBusy($('search-submit'),false,'Search');}
 });
-$('candidate-rows').addEventListener('click',e=>{const detail=e.target.closest('[data-detail]');const pin=e.target.closest('[data-pin]');const terms=e.target.closest('[data-terms]');if(terms)openTerms(terms.dataset.terms);if(detail)showDetail(detail.dataset.detail);if(pin){const id=pin.dataset.pin;pins.has(id)?pins.delete(id):pins.add(id);renderReport();}});
+$('candidate-rows').addEventListener('click',e=>{const detail=e.target.closest('[data-detail]');const pin=e.target.closest('[data-pin]');if(e.target.closest('[data-show-all]')){document.querySelector('[data-filter=all]').click();return;}const terms=e.target.closest('[data-terms]');if(terms)openTerms(terms.dataset.terms);if(detail)showDetail(detail.dataset.detail);if(pin){const id=pin.dataset.pin;pins.has(id)?pins.delete(id):pins.add(id);renderReport();}});
 for(const button of document.querySelectorAll('[data-filter]'))button.addEventListener('click',()=>{filter=button.dataset.filter;pinnedOnly=false;for(const b of document.querySelectorAll('[data-filter]'))b.classList.toggle('active',b===button);renderReport();});
 $('commercial-only').addEventListener('change',e=>{baseline=e.target.checked;renderReport();});
 $('shortlist-button').addEventListener('click',()=>{pinnedOnly=!pinnedOnly;filter='all';for(const b of document.querySelectorAll('[data-filter]'))b.classList.toggle('active',b.dataset.filter==='all');renderReport();$('comparison').scrollIntoView({behavior:'smooth'});});
@@ -215,16 +229,16 @@ async function loadExample(){campaign={...await api('/api/example'),mode:'demo',
 $('reset-example').addEventListener('click',()=>{if(running)return;showInfo('Reset this campaign?','<p>This replaces the current working campaign with the illustrative example. Your saved browser draft will remain.</p><button class="button primary" id="confirm-reset">Reset example</button>');$('confirm-reset').addEventListener('click',()=>{closeDialog('info-dialog');loadExample().catch(e=>showError(e.message));});});
 $('public-case-button').addEventListener('click',()=>{
   if(running)return;
-  showInfo('A real rate, a different placement','<p>This independent research case uses Field Notes as a possible advertiser and two publicly documented sponsorship offers. It is not a commissioned campaign.</p><p>The Pen Addict lists a website sponsorship rate; ATP describes podcast placements without a public rate. The $1,000 budget and US target market are planning assumptions.</p><p>Loading replaces the working campaign. Your saved draft remains. Confirm identities to obtain live Qloo evidence.</p><button class="button primary" id="load-public-case">Load research case</button>');
+  showInfo('A real rate, a different placement','<p>This independent research case uses Field Notes as a possible advertiser and two publicly documented sponsorship offers. It is not a commissioned campaign.</p><p>The Pen Addict lists a website sponsorship rate; ATP describes podcast placements without a public rate. The $1,000 budget and US target market are planning assumptions.</p><p>Loading replaces the working campaign. Your saved draft remains. In the server edition, confirm identities to obtain live Qloo evidence. The Pages edition checks commercial terms only.</p><button class="button primary" id="load-public-case">Load research case</button>');
   $('load-public-case').addEventListener('click',async()=>{
-    try{campaign={...await api('/api/public-case'),exampleTerms:false};pins.clear();filter='all';pinnedOnly=false;baseline=false;report=null;$('commercial-only').checked=false;for(const b of document.querySelectorAll('[data-filter]'))b.classList.toggle('active',b.dataset.filter==='all');for(const id of ['count-all','count-worth','count-needs','count-no','pin-count'])$(id).textContent='0';$('candidate-rows').innerHTML='<tr><td colspan="6" class="empty-state">Confirm the identities, then compare this research case.</td></tr>';$('result-summary').textContent='Public-source case. Comparison has not run yet.';closeDialog('info-dialog');markDirty();openEditor();if(config.tokenRequired&&!token)connectLive();}
+    try{campaign={...await api('/api/public-case'),exampleTerms:false};pins.clear();filter='all';pinnedOnly=false;baseline=false;report=null;$('commercial-only').checked=false;for(const b of document.querySelectorAll('[data-filter]'))b.classList.toggle('active',b.dataset.filter==='all');for(const id of ['count-all','count-worth','count-needs','count-no','pin-count'])$(id).textContent='0';$('candidate-rows').innerHTML='<tr><td colspan="6" class="empty-state">Review the supplied terms, then compare this research case.</td></tr>';$('result-summary').textContent='Public-source case. Comparison has not run yet.';closeDialog('info-dialog');markDirty();openEditor();if(config.tokenRequired&&!token)connectLive();}
     catch(error){closeDialog('info-dialog');showError(error.message);}
   });
 });
 $('export-button').addEventListener('click',async()=>{
   if(dirty||!report||running)return;
   setBusy($('export-button'),true,'Preparing…');
-  try{const data=await api('/api/export',{method:'POST',body:JSON.stringify({campaign:report.campaign,pinnedIds:[...pins]})});const url=URL.createObjectURL(new Blob([data.markdown],{type:'text/markdown;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=`partner-desk-${report.mode==='demo'?'DEMO-':''}brief.md`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(pins.size?'Pinned partner brief downloaded.':'Full comparison brief downloaded.');}
+  try{const markdown=exportMarkdown(structuredClone(report),[...pins]);const url=URL.createObjectURL(new Blob([markdown],{type:'text/markdown;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=`partner-desk-${report.mode==='demo'?'DEMO-':''}brief.md`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(pins.size?'Pinned partner brief downloaded.':'Full comparison brief downloaded.');}
   catch(error){showError(error.message);}
   finally{setBusy($('export-button'),dirty,'⇩ Export brief');}
 });
@@ -233,14 +247,25 @@ function openTerms(id){
   if(dirty||running)return;
   const c=campaign.candidates.find(c=>c.id===id);if(!c)return;
   termsTarget=id;$('terms-title').textContent=`Update ${c.name}`;
-  const select=(field,options)=>`<select name="${field}">${Object.entries(options).map(([v,t])=>`<option value="${v}" ${c[field]===v?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
-  $('terms-fields').innerHTML=`<label>Fee (${esc(campaign.currency)})<input name="fee" type="number" min="0" max="1000000000" step="0.01" value="${c.fee??''}" placeholder="Unknown"></label><label>Rate basis${select('quoteBasis',basisLabels)}</label><label>Episodes or weeks<input name="quoteUnits" type="number" min="1" max="10000" step="1" value="${c.quoteUnits??''}" placeholder="Only for unit rates"></label><label>What the offer covers${select('quoteChannel',channelLabels)}</label><label>Delivery markets<input name="markets" maxlength="200" value="${esc(c.markets.join(', '))}" placeholder="Unknown, or Global"></label><label>Offered format${select('format',{'':'Not confirmed','Sponsored content':'Sponsored content','Live event':'Live event','Product collaboration':'Product collaboration'})}</label><label class="full-field">Source link (optional)<input name="source" type="url" value="${esc(c.source)}" placeholder="https://…"></label><label class="full-field">Team notes<textarea name="notes" maxlength="1000" rows="3">${esc(c.notes)}</textarea></label>`;
-  $('terms-dialog').showModal();
+  const select=(field,options)=>`<select name="${field}" aria-label="${{quoteBasis:'Rate basis',quoteChannel:'What the offer covers',format:'Offered format'}[field]}">${Object.entries(options).map(([v,t])=>`<option value="${v}" ${c[field]===v?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
+  $('terms-fields').innerHTML=`<label>Fee (${esc(campaign.currency)})<input name="fee" type="number" min="0" max="1000000000" step="0.01" value="${c.fee??''}" placeholder="Unknown"></label><label>Rate basis${select('quoteBasis',basisLabels)}</label><label data-unit-control><span id="terms-quantity-label">Episodes or weeks</span><input name="quoteUnits" type="number" min="1" max="10000" step="1" value="${c.quoteUnits??''}" placeholder="Only for unit rates"></label><label>What the offer covers${select('quoteChannel',channelLabels)}</label><label>Delivery markets<input name="markets" maxlength="200" value="${esc(c.markets.join(', '))}" placeholder="Unknown, or Global"></label><label>Offered format${select('format',{'':'Not confirmed','Sponsored content':'Sponsored content','Live event':'Live event','Product collaboration':'Product collaboration'})}</label><label class="full-field">Source link (optional)<input name="source" type="url" value="${esc(c.source)}" placeholder="https://…"></label><label class="full-field">Team notes<textarea name="notes" aria-label="Team notes" maxlength="1000" rows="3">${esc(c.notes)}</textarea></label>`;
+  updateTermsCost();$('terms-dialog').showModal();
 }
+function updateTermsCost(){
+  const form=$('terms-form');const basis=form.elements.quoteBasis.value;const unit=form.elements.quoteUnits;
+  const perUnit=['episode','week'].includes(basis);unit.disabled=!perUnit;unit.closest('label').hidden=!perUnit;
+  $('terms-quantity-label').textContent=basis==='week'?'Number of weeks':'Number of episodes';
+  const fee=form.elements.fee;
+  if(!fee.validity.valid||(perUnit&&!unit.validity.valid)){$('terms-cost').textContent='Enter a valid rate and a positive whole unit count, or leave unknown values blank.';return;}
+  const cost=quoteCost({fee:fee.value===''?null:Number(fee.value),quoteBasis:basis,quoteUnits:perUnit&&unit.value!==''?Number(unit.value):null});
+  $('terms-cost').textContent=cost.amount===null?cost.detail:`Package cost: ${money(cost.amount)}. ${cost.detail}`;
+}
+$('terms-form').addEventListener('input',updateTermsCost);
+$('terms-form').addEventListener('change',updateTermsCost);
 $('terms-form').addEventListener('submit',async event=>{
   event.preventDefault();const c=campaign.candidates.find(c=>c.id===termsTarget);if(!c||running)return;
   const values=Object.fromEntries(new FormData(event.target));
-  Object.assign(c,values,{fee:values.fee===''?null:Number(values.fee),quoteUnits:values.quoteUnits===''?null:Number(values.quoteUnits),markets:values.markets.split(',').map(s=>s.trim()).filter(Boolean)});
+  Object.assign(c,values,{fee:values.fee===''?null:Number(values.fee),quoteUnits:!['episode','week'].includes(values.quoteBasis)||!values.quoteUnits?null:Number(values.quoteUnits),markets:values.markets.split(',').map(s=>s.trim()).filter(Boolean)});
   closeDialog('terms-dialog');markDirty();populateForm();await runComparison();
   document.querySelector(`[data-terms="${CSS.escape(c.id)}"]`)?.focus();
 });

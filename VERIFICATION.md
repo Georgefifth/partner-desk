@@ -62,3 +62,17 @@ The public case correctly rejected the applicability of a website offer to a pod
 - No prospective-customer task study was run. No measured time-saving, conversion lift, market demand, guaranteed opportunity or competitor latency superiority is claimed. Detailed priorities and a proposed five-user validation are in COMPETITIVE-REVIEW.md.
 
 Final deployment inspection found browser module caching retaining the earlier row-action position after a successful deployment. The static build now adds a deterministic content version to entry assets and the complete relative module graph. The static integration check verifies versioned entry and dynamic imports. All 43 checks pass after this fix. No custom caching server or service worker was added.
+
+## v0.4 refinement — 2026-10-18
+
+Acceptance: commercial completion must be independent of cultural evidence; unknown/mismatched terms must stay unresolved/blocked; exports must preserve the displayed report without querying again; unit inputs and cost preview must reflect rate basis.
+
+- 45 tests pass, including separate commercial assessment and live snapshot export retaining evidence, timestamp, selected partner and the original report without an additional adapter call.
+- Local static browser: whole-package quote hides quantity; episode rate 200 × 3 previews 600 before saving; CPM hides quantity and explains why a package quote/estimate is needed. Cancelling kept the original episode terms.
+- Public-source case tested locally with explicitly synthetic ATP commercial inputs: all four supplied checks passed, list and details showed Terms fit while culture remained Not assessed. The website-only Pen Addict offer remained a mismatch. No Qloo identity was needed in commercial mode.
+- Empty Confirm terms filter had zero candidates; Show all candidates restored the two-row comparison. Candidate detail opened the focused editor directly.
+- At 390 × 844 the document width did not exceed 390, the modal was scrollable and Save/Cancel remained visible. Screenshot critique moved the cost preview above the fields so it is visible while editing a mobile rate, rather than buried after notes.
+- Web export is now a client-side snapshot formatter. API export keeps its previous recomputation contract. A commercial-only display toggle on live/demo data does not strip evidence from exports; its notice says so.
+- No new claims about user time savings or buying intent. No public live backend was added.
+
+Server edition browser loaded v0.4 and all six demo candidates with the new public modules. The real-key smoke check also passed again for the Patagonia brand, Khruangbin artist and Outside Podcast, with Qloo-origin evidence in both categories and no warnings. These remain narrow integration checks using synthetic commercial inputs.

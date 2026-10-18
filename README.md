@@ -97,3 +97,11 @@ The browser edition supports the illustrative example, your own commercial revie
 The workflow `.github/workflows/pages.yml` tests the project, builds static output and deploys to Pages from `codex/product-review`. Enable GitHub Pages with GitHub Actions as the publishing source. Never upload `.env` or the ignored `artifacts/` folder.
 
 The latest research and acceptance criteria are in [COMPETITIVE-REVIEW.md](COMPETITIVE-REVIEW.md).
+
+## v0.4: finish a commercial review
+
+In commercial mode, **Terms fit** means the supplied budget, placement, delivery market and format checks pass. **Confirm terms** means commercial information is missing; **Does not fit** means at least one supplied condition conflicts. Cultural suitability and availability remain unverified in all three groups. Live/demo cultural assessments retain their existing decisions.
+
+Quote editing shows quantities only for episode/week rates and previews the calculated package cost before saving. CPM stays non-comparable. You can open the same editor from a candidate's details. Empty filtered views include a direct Show all candidates action.
+
+The web Export brief action now formats the displayed report snapshot on your device, preserving its timestamp and cultural evidence without an additional query. Pins select export candidates; list filters do not. The commercial-only view toggle does not remove evidence from a live/demo export. The HTTP export endpoint remains available for API consumers and still recomputes the supplied campaign.

@@ -7,7 +7,7 @@ import { QlooClient } from './lib/qloo.mjs';
 import { example } from './lib/example.mjs';
 import { publicCase } from './lib/public-case.mjs';
 
-const publicFiles = { '/': ['index.html','text/html'], '/app.js': ['app.js','text/javascript'], '/input-tools.js':['input-tools.js','text/javascript'], '/runtime-config.js':['runtime-config.js','text/javascript'], '/styles.css': ['styles.css','text/css'], '/icon.svg': ['icon.svg','image/svg+xml'] };
+const publicFiles = { '/lib/assessment.mjs':['../lib/assessment.mjs','text/javascript'], '/lib/report.mjs':['../lib/report.mjs','text/javascript'], '/': ['index.html','text/html'], '/app.js': ['app.js','text/javascript'], '/input-tools.js':['input-tools.js','text/javascript'], '/runtime-config.js':['runtime-config.js','text/javascript'], '/styles.css': ['styles.css','text/css'], '/icon.svg': ['icon.svg','image/svg+xml'] };
 export function createServer({ apiKey = '', baseUrl, accessToken = '', qloo = apiKey ? new QlooClient({ apiKey, baseUrl }) : null } = {}) {
   const limits = new Map();
   const server = http.createServer(async (req,res) => {
@@ -32,7 +32,7 @@ export function createServer({ apiKey = '', baseUrl, accessToken = '', qloo = ap
       if (!window || Date.now() > window.until) limits.set(ip, { count: 1, until: Date.now() + 60000 });
       else if (++window.count > 60) throw new AppError('Too many requests. Try again in a minute.', 429);
       if (limits.size > 1000) for (const [key,value] of limits) if (Date.now() > value.until) limits.delete(key);
-      if (req.method === 'GET' && url.pathname === '/api/config') return json(200, { liveAvailable: Boolean(qloo), tokenRequired: Boolean(accessToken), version: '0.3.0' });
+      if (req.method === 'GET' && url.pathname === '/api/config') return json(200, { liveAvailable: Boolean(qloo), tokenRequired: Boolean(accessToken), version: '0.4.0' });
       if (req.method === 'GET' && url.pathname === '/api/example') return json(200, example);
       if (req.method === 'GET' && url.pathname === '/api/public-case') return json(200, publicCase);
       const authorize = () => {
