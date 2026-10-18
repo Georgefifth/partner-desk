@@ -18,7 +18,7 @@ test('Pages bundle is allowlisted, supports project subpaths and shares decision
   execFileSync(process.execPath,['scripts/build-pages.mjs'],{cwd:new URL('../',import.meta.url)});
   const output=new URL('../_site/',import.meta.url);
   const files=(await readdir(output,{recursive:true})).sort();
-  assert.deepEqual(files,['.nojekyll','app.js','icon.svg','index.html','input-tools.js','lib','lib/domain.mjs','lib/example.mjs','lib/public-case.mjs','lib/assessment.mjs','lib/report.mjs','runtime-config.js','static-api.js','styles.css'].sort());
+  assert.deepEqual(files,['.nojekyll','app.js','request.js','icon.svg','index.html','input-tools.js','lib','lib/domain.mjs','lib/example.mjs','lib/public-case.mjs','lib/assessment.mjs','lib/report.mjs','runtime-config.js','static-api.js','styles.css'].sort());
   const html=await readFile(new URL('index.html',output),'utf8');
   assert.doesNotMatch(html,/(?:src|href)="\/(?!\/)/);
   assert.match(html,/app\.js\?v=[a-f0-9]{12}/);

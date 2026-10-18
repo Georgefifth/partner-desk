@@ -19,3 +19,7 @@ progress.signal-track::-moz-progress-bar{background:#7888d2;border-radius:2px}
 
 .terms-cost{display:block;margin:0 0 18px;padding:12px 14px;border-left:3px solid var(--iris);background:var(--soft);font-size:13px;line-height:1.6;color:var(--ink)}.terms-footer{position:sticky;bottom:-36px;background:white;padding:14px 0 4px;border-top:1px solid var(--line)}.terms-footer .button{min-height:42px}.empty-state .text-button{min-height:44px;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:700px){.terms-footer{bottom:-30px}.terms-cost{font-size:12px}}
+
+/* A single next action keeps the current comparison in view. */
+.next-step{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 0 18px;border-bottom:1px solid var(--line);margin-bottom:22px}.next-step p{font-size:13px;color:var(--muted);max-width:70ch}.next-step .small-button{margin:0;min-height:42px;background:white;font-size:12px;flex-shrink:0}.run-status{font-size:12px;color:var(--muted);margin:0 0 16px}.retry-load{margin:0 0 20px}
+@media(max-width:700px){.next-step{align-items:flex-start;flex-direction:column;gap:10px}.next-step p{font-size:12px}.next-step .small-button{min-height:44px}.identity-toolbar{flex-wrap:wrap}.identity-toolbar .small-button{min-height:42px;font-size:12px}}

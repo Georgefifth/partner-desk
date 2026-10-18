@@ -19,9 +19,11 @@
       <div class="mode-banner" id="mode-banner"><span class="mode-dot" aria-hidden="true"></span><p><strong>Illustrative example</strong> — affinity values and quotes are invented. No real partnership is implied.</p><button id="live-button">Connect live evidence</button></div>
       <section class="campaign-heading"><div><p class="section-label">Partnership comparison</p><h1 id="campaign-title">Outside, together</h1><p class="heading-description" id="campaign-objective"></p></div><button class="button secondary" id="edit-button"><span aria-hidden="true">✎</span> Edit campaign</button></section>
       <div class="campaign-strip" id="campaign-strip"></div>
+      <div class="next-step" id="next-step" hidden><p id="next-description"></p><button class="small-button" id="next-action">Start your comparison</button></div>
       <section class="editor" id="editor" hidden aria-labelledby="editor-heading">
         <div class="section-top"><div><h2 id="editor-heading">Set the brief. Bring your candidates.</h2><p>Use one currency for every quote. Leave missing terms blank.</p></div><button class="icon-button" id="close-editor" aria-label="Close campaign editor">×</button></div>
         <form id="campaign-form">
+          <div class="identity-toolbar"><p>Confirm the brand and candidate identities together. Nothing is selected automatically.</p><button class="small-button" id="review-identities" type="button">Review identities</button></div>
           <div class="brief-fields">
             <label>Campaign name<input name="title" maxlength="100" required></label>
             <label>Brand<div class="input-action"><input name="brand" maxlength="100" required><button class="small-button" type="button" id="resolve-brand">Find in Qloo</button></div><span class="field-hint" id="brand-match"></span></label>
@@ -32,13 +34,14 @@
             <label class="objective-field">Campaign objective<textarea name="objective" maxlength="1000" rows="2"></textarea><span class="field-hint">Included in the brief as context. It does not change the current ranking.</span></label>
           </div>
           <div class="section-top candidate-editor-heading"><div><h3>Candidate list</h3><p>Confirm the rate basis and placement before comparing costs.</p></div><div class="candidate-actions"><button class="button secondary" id="paste-candidates" type="button">Paste names</button><button class="button secondary" id="add-candidate" type="button">+ Add candidate</button></div></div>
-          <div class="identity-toolbar"><p>Find names once, then confirm the correct identities together.</p><button class="small-button" id="review-identities" type="button">Review identities</button></div>
           <div id="candidate-inputs"></div>
           <div class="editor-footer"><label class="mode-control">Evidence source<select id="mode-select"><option value="demo">Illustrative demo</option><option value="live">Live Qloo</option><option value="commercial">Commercial checks / no Qloo</option></select></label><p id="live-status"></p><button class="button primary" type="submit" id="run-button">Compare candidates <span aria-hidden="true">↗</span></button></div>
         </form>
       </section>
       <div class="notice" id="error" role="alert" hidden></div>
-      <div class="notice stale" id="stale" hidden><span>Your brief has changed. Update the comparison before exporting.</span><button class="small-button" id="rerun-button">Update comparison</button></div><p id="run-status" class="sr-only" role="status"></p>
+      <button class="button secondary retry-load" id="retry-load" hidden>Try loading again</button>
+      <noscript><p class="notice">Partner Desk needs JavaScript for comparisons. Enable JavaScript, then reload this page.</p></noscript>
+      <div class="notice stale" id="stale" hidden><span>Your brief has changed. Update the comparison before exporting.</span><button class="small-button" id="rerun-button">Update comparison</button></div><p id="run-status" class="run-status" role="status" hidden></p>
       <section class="comparison" aria-labelledby="comparison-heading" id="comparison">
         <div class="comparison-header"><div><h2 id="comparison-heading">Your decision desk</h2><p>Commercial fit comes first. Cultural signals guide the next conversation.</p></div><button class="text-button" id="workflow-button">View research steps <span aria-hidden="true">↗</span></button></div>
         <div class="comparison-toolbar"><div class="filters" role="group" aria-label="Filter candidates"><button class="filter active" data-filter="all">All candidates <span id="count-all">0</span></button><button class="filter" data-filter="worth-a-conversation">Worth a conversation <span id="count-worth">0</span></button><button class="filter" data-filter="needs-information">Needs information <span id="count-needs">0</span></button><button class="filter" data-filter="does-not-fit">Does not fit <span id="count-no">0</span></button></div><label class="baseline-switch"><input type="checkbox" id="commercial-only"> Commercial only</label></div>

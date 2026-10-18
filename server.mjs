@@ -7,7 +7,7 @@ import { QlooClient } from './lib/qloo.mjs';
 import { example } from './lib/example.mjs';
 import { publicCase } from './lib/public-case.mjs';
 
-const publicFiles = { '/lib/assessment.mjs':['../lib/assessment.mjs','text/javascript'], '/lib/report.mjs':['../lib/report.mjs','text/javascript'], '/': ['index.html','text/html'], '/app.js': ['app.js','text/javascript'], '/input-tools.js':['input-tools.js','text/javascript'], '/runtime-config.js':['runtime-config.js','text/javascript'], '/styles.css': ['styles.css','text/css'], '/icon.svg': ['icon.svg','image/svg+xml'] };
+const publicFiles = { '/lib/assessment.mjs':['../lib/assessment.mjs','text/javascript'], '/lib/report.mjs':['../lib/report.mjs','text/javascript'], '/': ['index.html','text/html'], '/app.js': ['app.js','text/javascript'], '/request.js':['request.js','text/javascript'], '/input-tools.js':['input-tools.js','text/javascript'], '/runtime-config.js':['runtime-config.js','text/javascript'], '/styles.css': ['styles.css','text/css'], '/icon.svg': ['icon.svg','image/svg+xml'] };
 export function createServer({ apiKey = '', baseUrl, accessToken = '', dailyLimit = 1000, qloo = apiKey ? new QlooClient({ apiKey, baseUrl, dailyLimit }) : null } = {}) {
   const limits = new Map();
   const server = http.createServer(async (req,res) => {

@@ -111,3 +111,9 @@ The web Export brief action now formats the displayed report snapshot on your de
 [Deploy the reviewed Free service](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FGeorgefifth%2Fpartner-desk%2Ftree%2Fcodex%2Fproduct-review) using the root `render.yaml`. See [DEPLOYMENT.md](DEPLOYMENT.md) for private secret setup, cold starts, process-local quota limitations and public acceptance checks. Render's generated desk access token is different from your Qloo API key. The Pages edition remains available without either credential.
 
 Public URLs: [Live-capable Render edition](https://partner-desk.onrender.com/) (desk token required for Qloo) and [GitHub Pages commercial edition](https://georgefifth.github.io/partner-desk/). Browser drafts belong to each origin and are not automatically shared between these sites.
+
+## Submission preparation
+
+[SUBMISSION.md](SUBMISSION.md) contains the English project description and requirements audit. [DEMO.md](DEMO.md) is an optional walkthrough, not a required video. [REVIEW-ACCESS.md](REVIEW-ACCESS.md) records the unresolved reviewer-access decision; current hosting is not declared fully submission-ready. No submission has been made.
+
+The interface now offers one next action based on the working brief, batch identity review above repeated candidate fields, visible comparison status and a retry for failed initial loading. Network errors preserve the brief, never reuse demo evidence and never automatically repeat an interrupted live request. The 90-second browser timeout includes response-body reading; it cannot replace Render's own wake-up screen before the application loads.

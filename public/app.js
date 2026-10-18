@@ -1,6 +1,7 @@
 import {commercialAssessment,commercialLabels,quoteCost,compareCommercialRows} from './lib/assessment.mjs';
 import {exportMarkdown} from './lib/report.mjs';
 import {staticHosting} from './runtime-config.js';
+import {requestJson} from './request.js';
 import {basisLabels,channelLabels,parseCandidateLines} from './input-tools.js';
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, x => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -14,14 +15,12 @@ const commercialView=()=>baseline||report?.mode==='commercial';
 const badge = (decision,commercial=false) => `<span class="decision-badge ${decision}">${decision === 'worth-a-conversation' ? '✓' : decision === 'needs-information' ? '?' : '−'} ${(commercial?commercialLabels:labels)[decision]}</span>`;
 async function api(path,options = {}) {
   if(staticHosting){const {staticApi}=await import('./static-api.js');return staticApi(path,options);}
-  const response = await fetch(path,{...options,headers:{ ...(options.body ? {'Content-Type':'application/json'} : {}), ...(token ? {Authorization:`Bearer ${token}`} : {}), ...options.headers }});
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'This request could not be completed.');
-  return data;
+  try{return await requestJson(path,{...options,headers:{ ...(options.body ? {'Content-Type':'application/json'} : {}), ...(token ? {Authorization:`Bearer ${token}`} : {}), ...options.headers }});}
+  catch(error){if(error.status===401)token='';throw error;}
 }
 function toast(text) { $('toast').textContent=text; $('toast').hidden=false; clearTimeout(toast.timer); toast.timer=setTimeout(() => $('toast').hidden=true,4000); }
 function showError(text) { $('error').textContent=text; $('error').hidden=!text; }
-function markDirty() { dirty=true;for(const b of document.querySelectorAll('[data-terms]'))b.disabled=true; $('stale').hidden=false; $('export-button').disabled=true; }
+function markDirty() { dirty=true;for(const b of document.querySelectorAll('[data-terms]'))b.disabled=true; $('stale').hidden=false; $('export-button').disabled=true; updateNextStep(); }
 function setBusy(button,busy,text) { button.disabled=busy; button.setAttribute('aria-busy',String(busy)); if (text) button.textContent=text; }
 function showInfo(title,html) { $('info-content').innerHTML=`<h2 id="info-title">${esc(title)}</h2>${html}`; $('info-dialog').showModal(); }
 function closeDialog(id) { $(id).close(); }
@@ -40,13 +39,34 @@ function updateHeading() {
   if(config.staticHosting)$('mode-banner').querySelector('p').innerHTML+='<br>GitHub Pages edition · calculations stay in this browser · live Qloo requires the server edition.';
   if(campaign.scenarioNotice)$('mode-banner').querySelector('p').textContent=campaign.scenarioNotice+(campaign.mode==='commercial'?' No live Qloo evidence on this site.':'');
   else if(dirty&&report&&campaign.mode!==report.mode)$('mode-banner').querySelector('p').innerHTML='<strong>Evidence source changed.</strong> Rerun the comparison. The previous results have not been refreshed.';
-  $('live-button').textContent=config.staticHosting?'About live evidence':campaign.mode==='demo'?'Connect live evidence':'Live connection details';
+  $('live-button').textContent=config.staticHosting?'About live evidence':campaign.mode==='live'?'Live connection details':'Connect live evidence';
   $('resolve-brand').disabled=campaign.mode!=='live' || !config.liveAvailable;
   $('review-identities').disabled=campaign.mode!=='live'||!config.liveAvailable;
   $('review-identities').closest('.identity-toolbar').hidden=campaign.mode!=='live';
   $('brand-match').textContent=campaign.mode==='commercial'?'Name for your brief. No Qloo identity is required in commercial mode.':campaign.mode==='demo' ? 'Example brand. No live identity has been resolved.' : campaign.brandEntity ? `Confirmed: ${campaign.brandEntity.name}` : 'Search and confirm a brand before comparing.';
   $('live-status').textContent=campaign.mode==='live' ? config.liveAvailable ? 'Confirm each identity. Unresolved partners stay unknown.' : 'Live access needs a server-side QLOO_API_KEY.' : campaign.mode==='commercial' ? 'Commercial terms are checked without Qloo. Cultural fit remains unresolved.' : 'Synthetic cultural values are available for the original example candidates only.';
+  updateNextStep();
 }
+function updateNextStep(){
+  if(!campaign)return;
+  const unresolved=campaign.mode==='live'&&(!campaign.brandEntity||campaign.candidates.some(c=>!c.excluded&&!c.entity));
+  let text,action,label;
+  if(campaign.mode==='demo'){text='Explore the example, or start with your own brand and shortlist. Example prices and cultural values are invented.';action='new';label='Start your comparison';}
+  else if(!campaign.title||!campaign.brand||!campaign.market||campaign.budget===null||!campaign.candidates.length){text='Set your brand, budget and target market, then add the artists or podcasts you want to compare.';action='edit';label='Complete the brief';}
+  else if(unresolved){text='Confirm the brand and candidate identities before requesting cultural evidence. Unselected names stay unresolved.';action='identities';label='Review identities';}
+  else if(dirty||!report){text='Your brief is ready to compare. Missing commercial terms will stay unknown.';action='compare';label='Compare candidates';}
+  else{text='Open a partner to inspect the evidence. Update supplied terms, then pin the partners you want in your exported brief.';action='results';label='Review comparison';}
+  $('next-description').textContent=text;$('next-action').textContent=label;$('next-action').dataset.action=action;$('next-step').hidden=false;
+}
+$('next-action').addEventListener('click',()=>{
+  if(running)return;
+  const action=$('next-action').dataset.action;
+  if(action==='new')$('new-campaign').click();
+  else if(action==='edit'){openEditor();$('campaign-form').elements.title.focus();}
+  else if(action==='identities'){if(config.tokenRequired&&!token)connectLive();else $('review-identities').click();}
+  else if(action==='compare')runComparison();
+  else{$('comparison').scrollIntoView({behavior:'smooth'});$('candidate-rows').querySelector('button')?.focus();}
+});
 function populateForm() {
   const form=$('campaign-form');
   for (const field of ['title','brand','objective','market','format','currency','budget']) form.elements[field].value=campaign[field] ?? '';
@@ -99,7 +119,7 @@ function renderReport() {
 async function runComparison() {
   if(running)return;
   if(!$('campaign-form').checkValidity()){openEditor();$('campaign-form').reportValidity();return;}
-  running=true; $('run-status').textContent='Updating comparison…'; showError(''); $('export-button').disabled=true; setBusy($('run-button'),true,'Comparing candidates…');
+  running=true; $('run-status').hidden=false;$('run-status').textContent=campaign.mode==='live'?'Requesting Qloo evidence. Missing commercial terms remain unknown…':'Checking supplied terms…'; showError(''); $('export-button').disabled=true; setBusy($('run-button'),true,'Comparing candidates…');$('rerun-button').disabled=true;$('next-action').disabled=true;
   const snapshot=structuredClone(campaign);
   // Lock edits during a request so returned decisions cannot silently refer to newer inputs.
   $('campaign-form').inert=true;
@@ -107,8 +127,8 @@ async function runComparison() {
     report=await api('/api/analyze',{method:'POST',body:JSON.stringify(snapshot)});
     dirty=false; $('run-status').textContent=`Comparison updated: ${report.rows.length} candidates.`; $('stale').hidden=true; updateHeading(); renderReport();
     if(!report.warnings.length) $('editor').hidden=true;
-  } catch(error){showError(error.message);markDirty();}
-  finally{running=false;for(const b of document.querySelectorAll('[data-terms]'))b.disabled=dirty;$('campaign-form').inert=false;setBusy($('run-button'),false,'Compare candidates ↗');$('export-button').disabled=dirty||!report;}
+  } catch(error){showError(error.message);markDirty();$('run-status').textContent='Comparison not updated. Your brief is preserved. Use Update comparison to retry.';}
+  finally{running=false;for(const b of document.querySelectorAll('[data-terms]'))b.disabled=dirty;$('campaign-form').inert=false;setBusy($('run-button'),false,'Compare candidates ↗');$('export-button').disabled=dirty||!report;$('rerun-button').disabled=false;$('next-action').disabled=false;}
 }
 function showDetail(id) {
   const c=report.rows.find(r=>r.id===id); if(!c)return;
@@ -287,4 +307,12 @@ $('new-campaign').addEventListener('click',()=>{
     closeDialog('info-dialog');markDirty();openEditor();$('campaign-form').elements.title.focus();
   });
 });
-try{config=await api('/api/config');$('mode-select').querySelector('[value=live]').disabled=Boolean(config.staticHosting);await loadExample();}catch(error){showError(`Could not load the desk. ${error.message} Reload the page to try again.`);}
+async function initialize(){
+  const controls=['new-campaign','save-draft','restore-draft','edit-button','nav-brief','workflow-button','live-button','reset-example','public-case-button'];
+  for(const id of controls)$(id).disabled=true;
+  $('retry-load').hidden=true;showError('');
+  try{config=await api('/api/config');$('mode-select').querySelector('[value=live]').disabled=Boolean(config.staticHosting);await loadExample();for(const id of controls)$(id).disabled=false;}
+  catch(error){showError(`Could not load the desk. ${error.message}`);$('retry-load').hidden=false;}
+}
+$('retry-load').addEventListener('click',initialize);
+await initialize();

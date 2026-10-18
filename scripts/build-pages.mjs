@@ -5,7 +5,7 @@ const output=new URL('_site/',root);
 await mkdir(new URL('lib/',output),{recursive:true});
 // Explicit allowlist: never load .env or copy the adapter/captured live data.
 const sources=new Map();
-for(const file of ['index.html','app.js','input-tools.js','static-api.js','styles.css','icon.svg'])
+for(const file of ['index.html','app.js','request.js','input-tools.js','static-api.js','styles.css','icon.svg'])
   sources.set(file,await readFile(new URL(`public/${file}`,root),'utf8'));
 for(const file of ['domain.mjs','example.mjs','public-case.mjs','assessment.mjs','report.mjs'])
   sources.set(`lib/${file}`,await readFile(new URL(`lib/${file}`,root),'utf8'));

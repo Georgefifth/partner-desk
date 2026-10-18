@@ -38,3 +38,13 @@ Rejected: all commercial-only rows stay “Needs information” until unavailabl
 Use the existing table and focused editor. Conditional quantity and a nearby arithmetic preview reduce unnecessary interpretation; no new decorative panels. Commercial-only conclusions must never become cultural endorsements. Export the displayed report snapshot; preserve full evidence when the commercial-only toggle is just a view. Critique after desktop/mobile browser checks.
 
 Second-pass mobile critique: a preview after all fields was below the viewport while typing the rate. Moved the arithmetic above the fields; the save/cancel strip stays visible while the form scrolls. Confirmed commercial status in both table and detail, and kept cultural uncertainty explicit.
+
+## Submission walkthrough pass — 2026-10-18
+
+Keep the six existing palette tokens and typography above. Add one left-aligned next-action line between the brief and editor, not a welcome modal or another dashboard. Its copy should describe the current state: example, unfinished brief, unresolved live identities or ready comparison. A single action reuses existing controls. Place batch identity review before repeated candidate fields so access does not depend on shortlist length. Make comparison progress visible and give initial load failures an explicit retry.
+
+```
+Brief → next action → editor (if needed) → comparison → exported handoff
+```
+
+Review: a proposed numbered onboarding checklist repeated the existing editor and would crowd mobile. Replace it with one contextual sentence and action. Native fetch, AbortController, dialog and existing CSS suffice; no new library or onboarding service is needed. Preserve source labels and all commercial decision rules.
