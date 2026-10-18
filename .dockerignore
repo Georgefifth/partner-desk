@@ -1,0 +1,7 @@
+.env
+.env.*
+.git
+artifacts
+node_modules
+test
+scripts

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#252B57"><meta name="description" content="Compare potential cultural partners against your campaign, commercial terms and Qloo evidence.">
+  <title>Partner Desk — Campaign comparison</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css"><script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to comparison</a>
+  <aside class="rail" aria-label="Workspace navigation">
+    <a class="brand" href="./" aria-label="Partner Desk home"><span class="brand-mark" aria-hidden="true"><i></i><i></i></span><span>Partner<br>desk</span></a>
+    <div class="rail-label">Workspace</div>
+    <nav><button class="nav-button active" id="nav-comparison"><span aria-hidden="true">▦</span> Comparison</button><button class="nav-button" id="nav-brief"><span aria-hidden="true">☷</span> Campaign brief</button><button class="nav-button" id="restore-draft"><span aria-hidden="true">↶</span> Restore draft</button></nav>
+    <div class="rail-bottom"><p>A little more evidence.<br>A better next conversation.</p><button class="nav-button" id="about-button"><span aria-hidden="true">ⓘ</span> How this works</button><span class="version" id="edition-label">Partner Desk / v0.3</span></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb">Campaigns <span aria-hidden="true">/</span> <strong id="crumb-title">Your comparison</strong></div><div class="top-actions"><button class="text-button" id="new-campaign">New campaign</button><button class="text-button" id="save-draft">Save draft</button><button class="button export-button" id="export-button" disabled><span aria-hidden="true">⇩</span> Export brief</button></div></header>
+    <main id="main">
+      <div class="mode-banner" id="mode-banner"><span class="mode-dot" aria-hidden="true"></span><p><strong>Illustrative example</strong> — affinity values and quotes are invented. No real partnership is implied.</p><button id="live-button">Connect live evidence</button></div>
+      <section class="campaign-heading"><div><p class="section-label">Partnership comparison</p><h1 id="campaign-title">Outside, together</h1><p class="heading-description" id="campaign-objective"></p></div><button class="button secondary" id="edit-button"><span aria-hidden="true">✎</span> Edit campaign</button></section>
+      <div class="campaign-strip" id="campaign-strip"></div>
+      <section class="editor" id="editor" hidden aria-labelledby="editor-heading">
+        <div class="section-top"><div><h2 id="editor-heading">Set the brief. Bring your candidates.</h2><p>Use one currency for every quote. Leave missing terms blank.</p></div><button class="icon-button" id="close-editor" aria-label="Close campaign editor">×</button></div>
+        <form id="campaign-form">
+          <div class="brief-fields">
+            <label>Campaign name<input name="title" maxlength="100" required></label>
+            <label>Brand<div class="input-action"><input name="brand" maxlength="100" required><button class="small-button" type="button" id="resolve-brand">Find in Qloo</button></div><span class="field-hint" id="brand-match"></span></label>
+            <label>Target market<input name="market" maxlength="80" required placeholder="United States"></label>
+            <label>Partnership format<select name="format"><option>Sponsored content</option><option>Live event</option><option>Product collaboration</option></select></label>
+            <label>Currency<select name="currency"><option>USD</option><option>GBP</option><option>EUR</option><option>MYR</option></select></label>
+            <label>Budget per partner<input name="budget" type="number" min="0" max="1000000000" step="0.01" required></label>
+            <label class="objective-field">Campaign objective<textarea name="objective" maxlength="1000" rows="2"></textarea><span class="field-hint">Included in the brief as context. It does not change the current ranking.</span></label>
+          </div>
+          <div class="section-top candidate-editor-heading"><div><h3>Candidate list</h3><p>Confirm the rate basis and placement before comparing costs.</p></div><div class="candidate-actions"><button class="button secondary" id="paste-candidates" type="button">Paste names</button><button class="button secondary" id="add-candidate" type="button">+ Add candidate</button></div></div>
+          <div class="identity-toolbar"><p>Find names once, then confirm the correct identities together.</p><button class="small-button" id="review-identities" type="button">Review identities</button></div>
+          <div id="candidate-inputs"></div>
+          <div class="editor-footer"><label class="mode-control">Evidence source<select id="mode-select"><option value="demo">Illustrative demo</option><option value="live">Live Qloo</option><option value="commercial">Commercial checks / no Qloo</option></select></label><p id="live-status"></p><button class="button primary" type="submit" id="run-button">Compare candidates <span aria-hidden="true">↗</span></button></div>
+        </form>
+      </section>
+      <div class="notice" id="error" role="alert" hidden></div>
+      <div class="notice stale" id="stale" hidden><span>Your brief has changed. Update the comparison before exporting.</span><button class="small-button" id="rerun-button">Update comparison</button></div><p id="run-status" class="sr-only" role="status"></p>
+      <section class="comparison" aria-labelledby="comparison-heading" id="comparison">
+        <div class="comparison-header"><div><h2 id="comparison-heading">Your decision desk</h2><p>Commercial fit comes first. Cultural signals guide the next conversation.</p></div><button class="text-button" id="workflow-button">View research steps <span aria-hidden="true">↗</span></button></div>
+        <div class="comparison-toolbar"><div class="filters" role="group" aria-label="Filter candidates"><button class="filter active" data-filter="all">All candidates <span id="count-all">0</span></button><button class="filter" data-filter="worth-a-conversation">Worth a conversation <span id="count-worth">0</span></button><button class="filter" data-filter="needs-information">Needs information <span id="count-needs">0</span></button><button class="filter" data-filter="does-not-fit">Does not fit <span id="count-no">0</span></button></div><label class="baseline-switch"><input type="checkbox" id="commercial-only"> Commercial only</label></div>
+        <p class="baseline-note" id="baseline-note" hidden>Cultural evidence is hidden and candidates are alphabetical within each decision group and category. This is a view of commercial checks, not a quality benchmark.</p>
+        <p class="baseline-note signal-note" id="signal-notes" hidden></p>
+        <div class="table-wrap"><table class="comparison-table"><thead><tr><th scope="col">Potential partner</th><th scope="col">Cultural signal <span class="th-note">within category</span></th><th scope="col">Package cost <span class="th-note">from your rate</span></th><th scope="col">Commercial checks</th><th scope="col">Next step</th><th scope="col"><span class="sr-only">Save partner</span></th></tr></thead><tbody id="candidate-rows"><tr><td colspan="6">Preparing the illustrative comparison…</td></tr></tbody></table></div>
+        <div class="comparison-footer"><p id="result-summary">Preparing comparison…</p><p><span class="legend-dot"></span> Evidence available <span class="legend-dash">—</span> Evidence missing</p></div>
+      </section>
+      <section class="handoff"><div class="handoff-symbol" aria-hidden="true">↗</div><div><h2>A shortlist is a starting point.</h2><p>Confirm audience geography, availability, deliverables and usage rights before committing. Cultural affinity is not a forecast of sales.</p></div><button class="text-button" id="shortlist-button">View pinned partners <span id="pin-count">0</span></button></section>
+      <footer class="page-footer"><span>Partner Desk</span><p>Built around Qloo cultural evidence and your campaign constraints.</p><button class="text-button" id="public-case-button">Try public research case</button><button class="text-button" id="reset-example">Reset example</button></footer>
+    </main>
+  </div>
+  <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title"><div id="detail-content"></div><button class="dialog-close icon-button" data-close="detail-dialog" aria-label="Close partner details">×</button></dialog>
+  <dialog id="terms-dialog" class="standard-dialog" aria-labelledby="terms-title"><button class="dialog-close icon-button" data-close="terms-dialog" aria-label="Cancel terms update">×</button><h2 id="terms-title">Update commercial terms</h2><p>Use a supplied quote. Unknown details stay blank. Saving updates the comparison; cancelling keeps the current terms.</p><form id="terms-form"><div id="terms-fields" class="terms-fields"></div><div class="terms-footer"><button type="button" class="button secondary" data-close="terms-dialog">Cancel</button><button class="button primary">Save and compare</button></div></form></dialog>
+  <dialog id="search-dialog" class="standard-dialog" aria-labelledby="search-title"><button class="dialog-close icon-button" data-close="search-dialog" aria-label="Close identity search">×</button><p class="section-label">Confirm the identity</p><h2 id="search-title">Find in Qloo</h2><p>Choose the correct entity. A similar name can refer to someone else.</p><form id="search-form"><div class="search-field"><input id="search-query" aria-label="Search Qloo" minlength="2" maxlength="100" required><button class="button primary" id="search-submit">Search</button></div></form><div id="search-results" aria-live="polite"></div></dialog>
+  <dialog id="info-dialog" class="standard-dialog" aria-labelledby="info-title"><button class="dialog-close icon-button" data-close="info-dialog" aria-label="Close information">×</button><div id="info-content"></div></dialog>
+  <dialog id="paste-dialog" class="standard-dialog" aria-labelledby="paste-title"><button class="dialog-close icon-button" data-close="paste-dialog" aria-label="Close candidate import">×</button><h2 id="paste-title">Bring your shortlist</h2><p>One name per line. Optionally add <code>| artist</code> or <code>| podcast</code>. Names are added to your current list; duplicates are rejected.</p><form id="paste-form"><label>Default category<select id="paste-type"><option value="podcast">Podcast</option><option value="artist">Artist</option></select></label><label>Candidate names<textarea id="paste-text" rows="7" maxlength="2000" required placeholder="The Pen Addict&#10;Accidental Tech Podcast&#10;Khruangbin | artist"></textarea></label><p id="paste-error" role="alert"></p><button class="button primary">Add names</button></form></dialog>
+  <dialog id="identities-dialog" class="identity-dialog" aria-labelledby="identities-title"><button class="dialog-close icon-button" data-close="identities-dialog" aria-label="Close identity review">×</button><h2 id="identities-title">One review. The right identities.</h2><p class="identity-intro">Select each correct result, or leave it unresolved. Similar names are not automatically accepted.</p><p id="identity-progress" role="status"></p><div id="identity-results"></div><div class="identity-footer"><p>Only selected identities will be applied.</p><button class="button primary" id="apply-identities" disabled>Apply selected identities</button></div></dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

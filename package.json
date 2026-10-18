@@ -1,0 +1,10 @@
+{
+  "name": "partner-desk",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "An evidence-first partnership comparison desk and MCP tool.",
+  "engines": { "node": ">=22.9.0" },
+  "scripts": { "build:pages": "node scripts/build-pages.mjs", "start": "node --env-file-if-exists=.env server.mjs", "dev": "node --env-file-if-exists=.env --watch server.mjs", "test": "node --test test/*.test.mjs", "mcp": "node --env-file-if-exists=.env mcp.mjs" },
+  "license": "MIT"
+}
