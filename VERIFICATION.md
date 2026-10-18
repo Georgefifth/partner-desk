@@ -80,3 +80,11 @@ Server edition browser loaded v0.4 and all six demo candidates with the new publ
 ## Render deployment preparation — v0.4.1
 
 Added a Free-only render.yaml, non-Qloo /healthz liveness endpoint, explicit per-process QLOO_DAILY_LIMIT validation, graceful SIGTERM shutdown and a /api/access check so a wrong desk token does not switch modes or clear the example. All 47 tests pass, including repeated health probes spending no Qloo calls, rejected invalid budgets and token checks with no upstream calls. Render login and GitHub permissions are completed by the account owner. No local credential is copied to the hosting provider automatically. A successful CI run is not proof of a live Render service; the hosted URL must still be checked.
+
+## Hosted Render acceptance — 2026-10-18
+
+- Render reported the Free Node service Live at https://partner-desk.onrender.com/ for a7689de. Health returned 200/version 0.4.1; configuration reported live availability and required authentication without secrets. Unauthenticated access, search, live analysis and live API export returned 401; /.env and /lib/qloo.mjs returned 404.
+- With explicit owner authorization, the generated desk token was used only in the hosted application's unlock form. It was not saved to source, artifacts or logs. The Qloo API key was not revealed.
+- Actual hosted UI: unlocked live mode, retained only Outside Podcast and Khruangbin, searched all three names including Patagonia, and explicitly selected the correct brand, podcast and artist identities. No identity was selected by default. The compare returned Qloo affinity in both categories, with no displayed warning. Artist evidence inspection showed qloo-live origin, confirmed identity, request provenance and observedAt 2026-10-18T08:10:53.243Z.
+- Missing commercial inputs stayed unknown after leaving demo mode. Both candidates remained Needs information despite cultural evidence; no demo rates were carried forward. Export showed Full comparison brief downloaded. The file was not independently read back; snapshot contents and no-query behavior are covered by automated tests.
+- These are narrow integration and interface checks, not proof of market demand, comprehensive Qloo coverage, response-time superiority or suitability of either partnership. Render Free cold starts and restart-reset process quotas remain documented limitations.

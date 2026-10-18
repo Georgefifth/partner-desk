@@ -58,3 +58,9 @@ Behind Render's reverse proxy, the current request limiter can group users under
 - Revisit after idle: account for Render's documented platform wake-up screen. Do not claim this cold-start time is application response latency.
 
 Do not call Render live until the actual hosted URL and real-key workflow have passed these checks.
+
+## Created service
+
+The account owner created the Free Node service `partner-desk` from commit `a7689de`. Render reported Live and returned `https://partner-desk.onrender.com/`. Public checks returned /healthz 200, liveAvailable=true, tokenRequired=true, unauthenticated live routes 401 and private source/env paths 404.
+
+On 2026-10-18, an explicitly authorized desk-token browser session completed real hosted Qloo searches for Patagonia, Khruangbin and Outside Podcast. All three identities were selected explicitly; both candidate categories returned Qloo affinity. Artist details retained qloo-live provenance, request parameters and an observation timestamp. Missing quotes, placement, markets and format remained unknown and both candidates needed information. Export showed download feedback; the downloaded file was not independently read back. This narrow integration check does not establish general entity coverage or commercial suitability. See VERIFICATION.md. The Pages live-information dialog links to this actual service; it never forwards a key, token or saved brief in the URL.

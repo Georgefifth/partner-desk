@@ -129,7 +129,7 @@ function openSearch(id) {
 async function connectLive() {
   if(running)return;
   if(!config.liveAvailable) {
-    if(config.staticHosting){showInfo('Live evidence needs a server','<p>This GitHub Pages edition runs commercial checks, draft storage and exports in your browser. The example uses invented cultural values. It cannot protect an API key or call the Node backend.</p><p>Run the server edition from the project README for live Qloo. Do not paste an API key into this page.</p>');return;}
+    if(config.staticHosting){showInfo('Live evidence needs a server','<p>This GitHub Pages edition runs commercial checks, draft storage and exports in your browser. The example uses invented cultural values. It cannot protect an API key or call the Node backend.</p><p><a class="button primary" href="https://partner-desk.onrender.com/" target="_blank" rel="noopener noreferrer">Open live server edition</a></p><p>Live access requires a desk access token. The free server may take about a minute to wake after inactivity.</p><p>Drafts stay on the site where you saved them. Do not paste a Qloo API key into either browser edition.</p>');return;}
     showInfo('Connect live Qloo evidence','<p>The current desk runs with an illustrative example. A real Qloo API key must be configured on the server.</p><pre>QLOO_API_KEY=your_key npm start</pre><p>Use the hackathon key with <code>https://hackathon.api.qloo.com</code>. Keep the key out of browser code and shared briefs.</p><p>Restart the server, reload this page, choose Live Qloo in the campaign editor, then confirm each entity. Live failures never become demo results.</p>');return;
   }
   if(config.tokenRequired&&!token){

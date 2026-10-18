@@ -109,3 +109,5 @@ The web Export brief action now formats the displayed report snapshot on your de
 ## Render server edition
 
 [Deploy the reviewed Free service](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FGeorgefifth%2Fpartner-desk%2Ftree%2Fcodex%2Fproduct-review) using the root `render.yaml`. See [DEPLOYMENT.md](DEPLOYMENT.md) for private secret setup, cold starts, process-local quota limitations and public acceptance checks. Render's generated desk access token is different from your Qloo API key. The Pages edition remains available without either credential.
+
+Public URLs: [Live-capable Render edition](https://partner-desk.onrender.com/) (desk token required for Qloo) and [GitHub Pages commercial edition](https://georgefifth.github.io/partner-desk/). Browser drafts belong to each origin and are not automatically shared between these sites.
